@@ -1,0 +1,7 @@
+HAY QUE CAMBIAR EN CONTIKI-CONF.H el #define JENNIC_CONF_COORDINATOR 1, en función si es coordinator o no.
+
+Por ejemplo el server si que lo va a llevar, el cliente no.
+
+Dentro de ese mismo fichero configurar también PANID, CANAL etc.
+#define JENNIC_CONF_COORD_FIXED_CHANNEL 15
+#define SICSLOWPAN_PANID 0xAAAA

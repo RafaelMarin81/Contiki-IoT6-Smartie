@@ -1,0 +1,20 @@
+diff --git a/ethbridge.c b/ethbridge.c
+index 5b794bf..fcdb47d 100644
+--- a/ethbridge.c
++++ b/ethbridge.c
+@@ -76,6 +76,7 @@ lowpan2eth()
+ {
+   /* special hack to put rssi values into udp packets transforming them
+    * into udplite packets. */
++#if 0
+   if (UIP_IP_BUF->proto == UIP_PROTO_UDP &&
+       uip_len < sizeof(uip_buf))
+   {
+@@ -99,6 +100,7 @@ lowpan2eth()
+     /* tell uip that a byte has been added */
+     uip_len += 1;
+   }
++#endif
+ 
+   mac_LowpanToEthernet();
+   other_send();

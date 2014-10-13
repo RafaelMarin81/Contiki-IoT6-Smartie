@@ -1,0 +1,653 @@
+-------------------- Contiki 2.5 with JN5139 and Jara ----------------------------------------------------------------
+DIR: contiki-jn5139-v2.5-jara-05-05-2011/examples/udp-ipv6-local-jennic
+
+Three basic hardware module variants are available: 
+- JN5139-xxx-M00 with an integrated antenna, 
+- JN5139-xxx-M01/M03 with an antenna connector
+- JN5139-xxx-M02/M04 with a power amplifier and LNA for extended range.
+------------------------------------------------------------------
+Jennic JN5139-M01R1
+ Server print_table_datalog LOCATION 0      Antena-HaciaArriba. SEND_INTERVAL_DATA=1/500    vAHI_HighPowerModuleEnable() in Client and Server.
+  POWER  0  PRR  42  39  42  39  34
+  POWER  1  PRR  44  35  40  42  44
+  POWER  2  PRR  48  48  48  46  44
+  POWER  3  PRR  50  49  49  49  49
+  POWER  4  PRR  50  50  50  50  50
+  POWER  5  PRR  50  50  50  50  50
+-----------------------------------------------------------------
+IB-120N JN5139-M04R1
+ Server print_table_datalog LOCATION 0      Antena-HaciaArriba. SEND_INTERVAL_DATA=1/500    vAHI_HighPowerModuleEnable() in Client and Server.
+  POWER  0  PRR  49  50  50  50  50
+  POWER  1  PRR  50  50  50  50  50
+  POWER  2  PRR  50  50  50  50  50
+  POWER  3  PRR  50  50  50  50  50
+  POWER  4  PRR  50  50  50  50  50
+  POWER  5  PRR  50  50  50  50  50
+
+-------------------------------------------------------------------
+IB-120N JN5139-M04R1
+ Server print_table_datalog LOCATION 0      Antena-HaciaArriba. SEND_INTERVAL_DATA=1/5      vAHI_HighPowerModuleEnable() in Client and Server.
+  POWER  0  PRR  49  50  50  50  50
+  POWER  1  PRR  50  50  50  50  50
+  POWER  2  PRR  50  50  50  50  50
+  POWER  3  PRR  50  50  50  50  50
+  POWER  4  PRR  50  50  50  50  50
+  POWER  5  PRR  50  50  50  50  50
+
+--------------------------------------------------
+PROBLEM: /home/jitu/opt/ba-elf/bin/ba-elf-ld: error: no memory region specified for loadable section `.scommon'
+SOLUTION: CHANGE  file:./JennicSDK/Chip/JN513xR1/Build/AppBuild_JN5139R1.ld 
+        .bss :
+        {  
+        _bss_beg = ABSOLUTE(.);
+        *(.bss*)
+        } > ram
+        _bss_end = ABSOLUTE(.);
+TO
+        .bss :
+        {  
+        _bss_beg = ABSOLUTE(.);
+        *(.bss*)
+        *(.scommon*)
+        } > ram
+        _bss_end = ABSOLUTE(.);
+
+-----------------------------------------------------------------------
+PROBLEM: Low Radio Range.  With Maximum Power Transmission.
+BECAUSE: Use High-Power Module.
+SOLUTION: Include Jennic Libraries.     CHANGE file:cpu/jennic/Makefile.jn5139
+## Include rafael81 to use High-Power Module.
+JENSDK_PATH = ${CONTIKI}/cpu/jennic/JennicSDK
+ifdef JENSDK_PATH
+    LDFLAGS += -L$(JENSDK_PATH)/Chip/JN513xR1/Build/
+    TARGET_LIBFILES += $(JENSDK_PATH)/Chip/JN513xR1/Library/ChipLib.a
+    TARGET_LIBFILES += $(JENSDK_PATH)/Common/Library/libc.a
+    CFLAGS += -I$(JENSDK_PATH)/Common/Include/
+    CFLAGS += -I$(JENSDK_PATH)/Chip/JN513xR1/Include/
+else
+    TARGET_LIBFILES += -lChipLib -lc
+endif
+TARGET_LIBFILES += ${addprefix $(CONTIKI_CPU)/sys/, BeaconTxNotification_JN5139R1.a}
+TARGET_LIBFILES += ${addprefix $(CONTIKI_CPU)/sys/, JPT_Lib.a}
+
+
+
+-------------------- High Power Module
+file: JN-AN-1049-Developing-With-High-Power-Modules-1v3
+
+vAHI_HighPowerModuleEnable(TRUE,TRUE);
+
+When compiling applications for use with the high-power modules, it is necessary to link with
+specific high-power module stack libraries. These libraries directly support the control of DIO2
+and DIO3 during transmission, reception and sleep.
+
+Directory and Library Information
+jennic\SDK\
+This is referred to below simply as the SDK directory.
+..\SDK\Chip\JN513x\Library (for JN513x)     file:ChipLib.a
+..\SDK\Chip\Platform\DK2 (for JN513x)
+
+----------------------------------------------------------------
+
+
+
+
+
+
+PROBLEM: IB-120N JN5139-M04R1.  have low Packet Reception Rate (PRR).
+SOLUTION: Apply JN-AN-1049-Developing-With-High-Power-Modules-1v3
+SOLUTION: Connect Battery with High-Voltaje.
+
+-------------------------------------------------------------------
+Jennic JN5139-M01R1
+ Server print_table_datalog LOCATION 0      Antena-Caida.       SEND_INTERVAL_DATA=1/50
+  POWER  0  PRR  29  38  32  35  39  0  0  0  0  0
+  POWER  1  PRR  46  47  49  49  48  0  0  0  0  0
+  POWER  2  PRR  50  50  50  45  37  0  0  0  0  0
+  POWER  3  PRR  46  48  50  48  49  0  0  0  0  0
+  POWER  4  PRR  50  50  50  48  45  0  0  0  0  0
+  POWER  5  PRR  50  50  50  50  50  0  0  0  0  0
+-------------------------------------------------------------------
+Jennic JN5139-M01R1
+ Server print_table_datalog LOCATION 0      Antena-HaciaArriba. SEND_INTERVAL_DATA=1/50
+  POWER  0  PRR  37  39  37  36  38  0  0  0  0  0
+  POWER  1  PRR  44  46  48  49  43  0  0  0  0  0
+  POWER  2  PRR  49  50  50  49  50  0  0  0  0  0
+  POWER  3  PRR  50  50  50  50  50  0  0  0  0  0
+  POWER  4  PRR  50  50  50  50  50  0  0  0  0  0
+  POWER  5  PRR  50  50  50  50  50  0  0  0  0  0
+-------------------------------------------------------------------
+IB-120N JN5139-M04R1
+ Server print_table_datalog LOCATION 0      Antena-HaciaArriba. SEND_INTERVAL_DATA=1/50
+  POWER  0  PRR  9  13  20  10  7  0  0  0  0  0
+  POWER  1  PRR  23  27  25  25  22  0  0  0  0  0
+  POWER  2  PRR  33  36  29  35  36  0  0  0  0  0
+  POWER  3  PRR  38  38  40  32  40  0  0  0  0  0
+  POWER  4  PRR  42  37  39  37  42  0  0  0  0  0
+  POWER  5  PRR  35  43  40  35  38  0  0  0  0  0
+-------------------------------------------------------------------
+IB-120N JN5139-M04R1
+ Server print_table_datalog LOCATION 0      Antena-HaciaArriba. SEND_INTERVAL_DATA=1/5
+  POWER  0  PRR  21  23  23  26  25  0  0  0  0  0
+  POWER  1  PRR  35  33  37  40  36  0  0  0  0  0
+  POWER  2  PRR  35  36  42  36  34  0  0  0  0  0
+  POWER  3  PRR  38  36  38  39  38  0  0  0  0  0
+  POWER  4  PRR  41  38  38  42  39  0  0  0  0  0
+  POWER  5  PRR  42  40  46  43  38  0  0  0  0  0
+
+
+-----------------------------
+PROBLEM: Client send packets to Server.     Server receive few packets.
+BECAUSE: Network Stack does not work fine.  Check the sending finished right.
+SOLUTION: Transmit slower.
+
+-- /cpu/jennic/net/ieee802.c
+/* contiki mac driver functions */
+void ieee_send(mac_callback_t cb, void *ptr)
+  vAppApiMcpsRequest(&req, &cfm);       /* 8. Request to transmit the packet. */
+  switch(cfm.u8Status) {            /* 9. Return the status of the transmission.  mac_call_sent_callback() */
+
+
+-- /core/net/...    Implement Fragmentation.    Example: Payload-Aplication 134  is sending 2 MAC frames.
+
+Payload-Application = 134
+2 payload-len in MAC layer: 101 + 51 = 152 
+Header of Network Stack = 152 - 134 = 18 / 2 = 9 bytes.
+sicslowpan output: header of len = 9
+
+-- /core/net/sicslowpan.c
+/** \brief Size of the 802.15.4 payload (127byte - 25 for MAC header) */
+#define MAC_MAX_PAYLOAD 102
+
+uint8_t sicslowpan_output(uip_lladdr_t *localdest) {
+    /*
+     * The outbound IPv6 packet is too large to fit into a single 802.15.4 packet, so we fragment it into multiple packets and send them.
+     * The first fragment contains frag1 dispatch, then IPv6/HC1/HC06/HC_UDP dispatchs/headers. The following fragments contain only the fragn dispatch.
+     */
+  if(uip_len - uncomp_hdr_len > MAC_MAX_PAYLOAD - rime_hdr_len) {
+
+-- /core/net/sicslowpan.h
+/*** The 6lowpan "headers length"  */
+#define SICSLOWPAN_IPV6_HDR_LEN                     1    /*one byte*/
+#define SICSLOWPAN_HC1_HDR_LEN                      3
+#define SICSLOWPAN_HC1_HC_UDP_HDR_LEN               7
+#define SICSLOWPAN_FRAG1_HDR_LEN                    4
+#define SICSLOWPAN_FRAGN_HDR_LEN                    5
+
+
+-- /cpu/jennic/net/ieee802_mac_sap.h
+/** Minimum Data Frame overhead */
+#define MAC_MIN_DATA_FRM_OVERHEAD       9
+/** Maximum Data Frame overhead */
+#define MAC_MAX_DATA_FRM_OVERHEAD       25
+/** Minimum Beacon Frame overhead */
+#define MAC_MIN_BEACON_FRM_OVERHEAD     9
+/** Maximum Beacon Frame overhead */
+#define MAC_MAX_BEACON_FRM_OVERHEAD     15
+/** Maximum Data Frame payload */
+#define MAC_MAX_DATA_PAYLOAD_LEN      (MAC_MAX_PHY_PKT_SIZE - MAC_MIN_DATA_FRM_OVERHEAD)  (127 - 9)
+/** Maximum Beacon Frame payload */
+#define MAC_MAX_BEACON_PAYLOAD_LEN    (MAC_MAX_PHY_PKT_SIZE - MAC_MIN_BEACON_FRM_OVERHEAD) (127 - 9)
+
+
+
+
+
+
+
+
+-- ERROR: Implement UDP IPv6 Logger.     Sending a Packet.
+PROBLEM:  udp-client-logger does not send to all DATA packets.  
+BECAUSE:  
+SOLUTION: SEND_INTERVAL_DATA = CLOCK_SECOND / 40 = 25 miliseconds.
+
+
+-- ERROR: Implement UDP IPv6 Logger.     Sending a Packet.
+PROBLEM:  udp-client-logger does not send to any DATA packets in MAC layer.  
+BECAUSE:  Error MAC address:  0xffff 0xffff 0xffff 0xffff
+SOLUTION: jenprog -t /dev/ttyUSB0 -m <MAC-Address>
+
+
+--/example/udp-ipv6/udp-server-logger.c:   mac: 0x00158d00000b1cf1     /dev/ttyUSB1     MAC-Jennic: Coordinator.
+
+--/core/net.   uip6.c  tcpip.c  sicslowpan.c   ieee802.c   
+#ifdef PRINTF_UIP6        // Debug with PRINTF() and juart.
+#define PRINTF(...) vPrintf(__VA_ARGS__)
+#else
+#define PRINTF(...) printf(__VA_ARGS__)
+#endif
+
+
+----------------------- Include libraries from Jennic SDK. --------------------------------------------------------------------------
+            #include <AppHardwareApi.h>   // jennic.JN5139.SDK-Libraries/Chip/JN513x-JN513xR1/Include
+            #include <AppApi.h>           // jennic.JN5139.SDK-Libraries/Chip/JN513x-JN513xR1/Include
+            #include <JPT.h>              // jennic.JN5139.SDK-Libraries/Chip/Common/Include          Radio-Management. ON/OFF SetChannel, SetPower
+            #include <LedControl.h>       // jennic.JN5139.SDK-Libraries/Platform/                    Control-Leds depend on Programming-Board.
+----------------------------------- JPT:  Radio-Management. ON/OFF SetChannel, SetPower ----------------------------------------------
+
+file:./Chip/Common/Include/JPT.h          COPY in  contiki/cpu/jennic/sys/
+file:./Chip/Common/Include/JPT_Lib.a      COPY in  contiki/cpu/jennic/sys/
+file:contiki/cpu/jennic/Makefile.jn5139   ADD in   TARGET_LIBFILES += ${addprefix $(CONTIKI_CPU)/sys/, JPT_Lib.a}
+      /* Radio Management  Function:      bJPT_RadioInit      vJPT_RadioDeInit      bJPT_RadioSetChannel      vJPT_RadioSetPower
+PUBLIC bool_t bJPT_RadioInit(uint32 u32RadioMode);  
+Description
+         This function enables the radio part of the wireless microcontroller. You must first
+         call this function in order to use the module to transmit and/or receive over the
+         radio. As part of this function, you must specify the radio operating mode.
+Parameters
+         u32RadioMode              Sets the radio operating mode:
+                                   E_JPT_MODE_HIPOWER : High-power mode
+                                   E_JPT_MODE_BOOST : Boost mode (JN513x only)
+                                   E_JPT_MODE_LOPOWER : Normal mode
+Returns
+         TRUE: Radio initialised successfully
+         FALSE: An error occurred during radio initialisation
+
+PUBLIC void vJPT_RadioDeInit(void);
+Description
+         This function disables the radio part of the wireless microcontroller (if it has been
+         previously enabled using the function vJPT_RadioInit()).
+
+
+PUBLIC bool_t bJPT_RadioSetChannel(uint8 u8Channel);
+Description
+         This function is used to select the radio channel in which the module will operate.
+Parameters
+         u8channel            Channel number of radio frequency channel in which module
+                              will operate (integer value in the range 11 to 26 – refer to the
+                              table in Appendix B on page 52).
+Returns
+         TRUE: Channel change successful
+         FALSE: Channel change failed
+
+PUBLIC void vJPT_RadioSetPower(uint8 u8PowerLevel);
+Description:  This function is used to set the radio transmission power level for the module.
+u8PowerLevel:       0,   1,   2,   3,  4, 5    
+Radio-power(dBm): –30, –24, –18, –12, –6, 0
+
+------------------------------------------- Control-Leds depend on Programming-Board ----------------------------------------------------------
+
+file:./Platform/HPDevKit/Include/LedControl.h       COPY in  contiki/cpu/jennic/sys/
+#define LED_CTRL_BASE_BIT 14
+#define LED_CTRL_MASK_RFD 0x03
+#define LED_CTRL_MASK_FFD 0x0f
+#define vLedInitRfd()           vAHI_DioSetDirection(0, (LED_CTRL_MASK_RFD << LED_CTRL_BASE_BIT))
+#define vLedInitFfd()           vAHI_DioSetDirection(0, (LED_CTRL_MASK_FFD << LED_CTRL_BASE_BIT))
+#define vLedControl(LED,ON)     vAHI_DioSetOutput((ON) ? 0 : (1 << (LED_CTRL_BASE_BIT + LED)), (ON) ? (1 << (LED_CTRL_BASE_BIT + LED)) : 0)
+
+file:./Platform/NTS/Include/LedControl.h            COPY in  contiki/cpu/jennic/sys/
+#define LED_CTRL_BASE_BIT 16
+#define LED_CTRL_MASK_NTS 0x03
+#define vLedInitNts()           vAHI_DioSetDirection(0, (LED_CTRL_MASK_NTS << LED_CTRL_BASE_BIT))
+#define vLedControl(LED,ON)     vAHI_DioSetOutput((ON) ? 0 : (1 << (LED_CTRL_BASE_BIT + LED)), (ON) ? (1 << (LED_CTRL_BASE_BIT + LED)) : 0)
+
+file:./Platform/DK2/Include/LedControl.h            COPY in  contiki/cpu/jennic/sys/
+#define LED_CTRL_BASE_BIT 16
+#define LED_CTRL_MASK_RFD 0x03
+#define LED_CTRL_MASK_FFD 0x0f
+#define LED_CTRL_MASK_NTS 0x03
+#define vLedInitRfd()           vAHI_DioSetDirection(0, (LED_CTRL_MASK_RFD << LED_CTRL_BASE_BIT))
+#define vLedInitFfd()           vAHI_DioSetDirection(0, (LED_CTRL_MASK_FFD << LED_CTRL_BASE_BIT))
+#define vLedControl(LED,ON)     vAHI_DioSetOutput((ON) ? 0 : (1 << (LED_CTRL_BASE_BIT + LED)), (ON) ? (1 << (LED_CTRL_BASE_BIT + LED)) : 0)
+
+file:./Platform/DK1/Include/LedControl.h            COPY in  contiki/cpu/jennic/sys/
+#define LED_CTRL_BASE_BIT 14
+#define LED_CTRL_MASK_RFD 0x03
+#define LED_CTRL_MASK_FFD 0x0f
+#define vLedInitRfd()           vAHI_DioSetDirection(0, (LED_CTRL_MASK_RFD << LED_CTRL_BASE_BIT))
+#define vLedInitFfd()           vAHI_DioSetDirection(0, (LED_CTRL_MASK_FFD << LED_CTRL_BASE_BIT))
+#define vLedControl(LED,ON)     vAHI_DioSetOutput((ON) ? 0 : (1 << (LED_CTRL_BASE_BIT + LED)), (ON) ? (1 << (LED_CTRL_BASE_BIT + LED)) : 0)
+
+
+--------------------------- Jara email ------------------------------------------------------
+
+Pues las demoboards es la DK1 y para los coreanos hazlo con la activacion de las salidas digitales, mira que PIN está conectada en el esquemático y ya está, con estas llamadas:
+
+
+Te dejo el ejemplo del MOVITAL, donde configuro los pines que son de entrada y salida, y luego como les doy valor.
+    //DIO16 - LED - POWER
+    //DIO15 - RFID POWER
+    //DIO14 - POT-POWER, alimentación a 5v
+    //DIO13 Output, buzzer
+    //DIO 8,9,10 y 11. LEDS
+    //OUT 0000 0011 (16) 1110 (12) 1111 (8) 0000 (4) 0000 (0)
+
+
+    //DIO12, pulsador externo
+    //IN  0000 0000 (16) 0001 (12) 0000 (8) 0000 (4) 0000 (0)
+    vAHI_DioSetDirection( 0x00001000 , 0x0003EF00 ); //Establece los pins 8 9 10 y 11 como pines de salida
+
+
+    vAHI_DioSetOutput(0x00004F00, 0x00000000);
+    vAHI_DioSetPullup(0x00004F00, 0x00000000); //Pongo a 1 la alimentación a 5v y a 0 los LEDs, que se encienden con 0
+
+-------------------------------------------------------------------------------------------------
+
+
+--------------------- Example of Jara.  Control-Leds. ----------------------------------------------
+file: Jara-Library_ADC_and_JUART_and_LQI/coordinator.c
+static void vInit(void) 
+{
+    /* Set DIO for LEDs */
+    vLedInitFfd();
+    /* Turn off all the LEDs */
+    vLedControl(0,0);
+}
+// Toggles LED1 to indicate we are alive.
+static void vToggleLed(void) 
+{
+    static bool_t bToggle;
+    if (bToggle) {
+        vLedControl(0,0);
+    } else {
+        vLedControl(0,1);
+    }
+    bToggle = !bToggle;
+}
+
+
+
+---------------- RSSI/LQI To get LinkQuality, we have to work directly with the ieee802 layer of Jennic Stack Network. --------------------
+file: Jara-Library_ADC_and_JUART_and_LQI/rssi.c
+// The following is an example of handling a deferred active scan confirmation (assumes data is passed as a pointer to a deferred confirm indicator data type i.e. MAC_MlmeDcfmInd_s *psMlmeInd.)
+//MAC_MlmeDcfmInd_s *psMlmeInd;  
+//MAC_PanDescr_s *psPanDesc = &psMlmeInd->uParam.sDcfmScan.uList.asPanDescr[i]; //Descriptor of the channel.
+//uint8 psPanDesc->u8LinkQuality; // Link quality of the received beacon
+
+
+
+
+
+
+
+
+
+-- /example/udp-ipv6/udp-broadcast.c:   mac: 0x00158d00000b1cf0     /dev/ttyUSB0     MAC-Jennic: Coordinator.
+
+-- ERROR: Implement UDP broadcast with Local-Link.  
+PROBLEM:  "ieee802" does not process and send the broadcast frame.
+BECAUSE:  
+
+
+-- ../../tools/sky/serialdump-linux -b38400 /dev/ttyUSB0
+connecting to /dev/ttyUSB0 (38400) [OK]
+ieee_process: starting
+ieee_process: started
+UDP broadcast process started
+UDP Broadcast IPv6 addresses:  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf0
+Created a broadcast connection.local/remote port 3001/0
+ieee_task: started as coord on fixed channel 15
+MAC 802. Send a Broadcast.
+MAC 802. Send a Broadcast.
+Broadcast sending to:  0xde 0xad:0xbe 0xef:0x1 0x4:0x0 0x31:0x0 0x0:0x86 0x5c:0x0 0x0:0x82 0xd8  (msg: Broad 1�+t)
+MAC 802. Send a Broadcast.
+Broadcast sending to:  0xde 0xad:0xbe 0xef:0x1 0x4:0x0 0x31:0x0 0x0:0x86 0x5c:0x0 0x0:0x82 0xd8  (msg: Broad 2�+t)
+Broadcast sending to:  0xde 0xad:0xbe 0xef:0x1 0x4:0x0 0x31:0x0 0x0:0x86 0x5c:0x0 0x0:0x82 0xd8  (msg: Broad 3t)
+Broadcast sending to:  0xde 0xad:0xbe 0xef:0x1 0x4:0x0 0x31:0x0 0x0:0x86 0x5c:0x0 0x0:0x82 0xd8  (msg: Broad 4t)
+Broadcast sending to:  0xde 0xad:0xbe 0xef:0x1 0x4:0x0 0x31:0x0 0x0:0x86 0x5c:0x0 0x0:0x82 0xd8  (msg: Broad 5t)
+
+
+
+
+
+
+
+-- udp-broadcast.jndevkit.hex
+UDP Broadcast IPv6 addresses:  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf0
+tcpip. udp_broadcast_new linklocal_allnodes_mcast:  0xff02:0x0:0x0:0x0:0x0:0x0:0x0:0x1
+tcpip. udp_new remote-port:3000 ripaddr: 0xff02:0x0:0x0:0x0:0x0:0x0:0x0:0x1
+Created a broadcast connection.local/remote port 3001/3000
+
+
+
+
+
+
+
+-- TCP_IP Sending a BROADCAST Packet:  UDP IPv6 MAC Layers.
+tcpip_ipv6_output uip_len:64
+ 0xff02:0x0:0x0:0x0:0x0:0x0:0x0:0x2
+tcpip_ipv6_output     call tcpip_output(NULL).      --> No Next-hop determination.
+tcpip_output call outputfunc(uip_lladdr_t *a);
+ 0xdead:0xbeef:0x104:0x31:0x0:0x865c:0x0:0x82d8
+sicslowpan output: sending packet len 64
+sicslowpan output: header of len 4
+MAC 802. Send a Broadcast.
+
+
+-- Node1 Sending a BROADCAST Packet:  UDP IPv6 MAC Layers.
+Broadcast sending to:  0xdead:0xbeef:0x104:0x31:0x0:0x865c:0x0:0x82d8
+ 0xff02:0x0:0x0:0x0:0x0:0x0:0x0:0x82d8
+ (msg: Broad 2�Fd)
+In udp_send
+uip6.  Process the sending to Establish Destination Address:  0xdead:0xbeef:0x104:0x31:0x0:0x865c:0x0:0x82d8
+uip6.  Change Address to Broadcast Allnodes:  0xff02:0x0:0x0:0x0:0x0:0x0:0x0:0x1
+---------------- Modify Manual --------------------------------------------------------------
+tcpip_ipv6_output uip_len:61 destipaddr:
+ 0xff02:0x0:0x0:0x0:0x0:0x0:0x0:0x1
+tcpip_ipv6_output     call tcpip_output(NULL).
+tcpip_output call outputfunc(uip_lladdr_t *a);
+ 0xdead:0xbeef:0x104:0x31:0x0:0x865c:0x0:0x82d8
+sicslowpan output: sending packet len 61
+IPHC: compressing unspecified - setting SAC
+IPHC: Uncompressed UDP ports on send side: 0x0, 0x82ec
+IPHC: cannot compress headers
+sicslowpan output: header of len 11
+MAC 802. Send a Broadcast.
+
+
+
+
+
+-- Node2 Receiving a BROADCAST Packet:  UDP IPv6 MAC Layers.
+MAC 802. Receive a frame.
+MAC 802. Receive a BROADCAST.
+sicslowpan input: IPHC
+Uncompressing 0 + 0 =>  0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0
+Uncompressing 2 + 1 =>  0xff 0x2:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x1
+IPHC: Incoming header value: 240
+IPHC: Uncompressed UDP ports (ptr+5): 0x0, 0x82ec
+IPHC: sicslowpan uncompress_hdr: checksum included
+sicslowpan input: IP packet ready (length 56)
+packet_input. uip_len:56
+IPv6 packet received from  0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0  to  0xff 0x2:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x1
+Receiving UDP packet
+udp: no matching connection found
+
+
+
+
+
+-- ERROR: Implement UDP IPv6 Broadcast.     Sending a Packet.
+PROBLEM:  udp-broadcast does not send to the broadcast address "0xff02:0x0:0x0:0x0:0x0:0x0:0x0:0x1"
+BECAUSE:  In /core/net/uip6.c, the function uip_process (uip_udp_conn == NULL) && (uip_udp_conn->ripaddr =="0xdead:0xbeef:0x104:0x31:0x0:0x865c:0x0:0x82d8")
+SOLUTION: Global variable.  static struct uip_udp_conn *broadcast_conn;
+
+
+-- ERROR: Implement UDP IPv6 Broadcast.     Receiving a Packet.
+PROBLEM:  udp-broadcast does not receive the broadcast address from uIPv6 to AplicationLayer.
+BECAUSE:  In /core/net/uip6.c,  the function "uip_process".  ERROR.  "no matching connection found".  cmp(&UIP_IP_BUF->srcipaddr, &uip_udp_conn->ripaddr)
+SOLUTION: Include this code:     if(uip_is_addr_mcast(&uip_udp_conn->ripaddr)) { goto udp_found; }
+
+
+
+
+
+
+
+
+-- ERROR: Implement UDP IPv6.  Client and Server.
+PROBLEM:  udp-client does not print messages when receive the RESPONSE packet from the server.
+BECAUSE:  printf("Response from the server: '%s'\n", str);    // ERROR.   This is not printed.
+SOLUTION: Use PRINTF("");
+
+File: udp-ipv6-local-jennic-bidirection-05-05-2011.tgz      ->  Client open 1 connection to send to the sender and receive to the sender.
+File: udp-ipv6-local-jennic-bidirection-10-05-2011.tgz      ->  Client and Server open 2 connection to send each other.
+
+--  UDP-CLIENT:   mac: 0x00158d00000b1cf0     /dev/ttyUSB0     MAC-Jennic: Coordinator.
+
+>   ../../tools/sky/serialdump-linux -b115200 /dev/ttyUSB0
+
+connecting to /dev/ttyUSB0 (38400) [OK]
+UDP client process started
+Client IPv6 addresses:  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf0
+Created a connection with the server  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf1 local/remote port 3001/3000
+Client sending to:  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf1  (msg: Hello 1)
+Client receive from the server: 'Hello 1'
+Client sending to:  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf1  (msg: Hello 2)
+Client receive from the server: 'Hello 2'
+
+
+
+-- Client-node Sends a UNICAST Packet:  UDP IPv6 MAC Layers.
+Client sending to:  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf1  (msg: Hello 4)
+tcpip_ipv6_output uip_len:55
+tcpip_ipv6_output uip_ds6_is_addr_onlink. destipaddr:  0xfe80:0x0:0x0:0x0:0x215:0x8d00:0xb:0x1cf1
+tcpip_ipv6_output: nbr cache entry stale moving to delay
+tcpip_output call outputfunc(uip_lladdr_t *a);
+sicslowpan output: sending packet len 55
+IPHC: Uncompressed UDP ports on send side: 0xbb9, 0xbb8
+IPHC: cannot compress headers
+sicslowpan output: header of len 9
+MAC 802. Send a Unicast.
+
+--Client-node Receives a UNICAST Packet:  UDP IPv6 MAC Layers.
+MAC 802. Receive a frame.
+MAC 802. Receive a UNICAST.
+sicslowpan input: IPHC
+Uncompressing 2 + 0 =>  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf1
+Uncompressing 2 + 0 =>  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf0
+IPHC: Incoming header value: 240
+IPHC: Uncompressed UDP ports (ptr+5): 0xbb8, 0xbb9
+IPHC: sicslowpan uncompress_hdr: checksum included
+sicslowpan input: IP packet ready (length 57)
+packet_input. uip_len:57
+Response from the server: 'Hello 281'
+
+
+
+-- UDP-SERVER:   mac: 0x00158d00000b1cf1     /dev/ttyUSB1     MAC-Jennic: Coordinator.
+
+>   ../../tools/sky/serialdump-linux -b115200 /dev/ttyUSB1
+
+connecting to /dev/ttyUSB1 (38400) [OK]
+UDP server started
+Server IPv6 addresses:
+ 0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf1
+Listening on UDP port 3000
+Created a server connection with remote address  0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0:0x0 0x0 local/remote port 3000/0
+Server received: 'Hello 1' from  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf0
+Responding with message: Hello 1
+Server received: 'Hello 2' from  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf0
+Responding with message: Hello 2
+
+
+
+
+
+
+-------------------- Contiki 2.4 with JN5139 and Jara ----------------------------------------------------------------
+DIR: contiki-jn5139-jara-25-04-2011/examples/udp-ipv6-local-jennic
+
+--  UDP-CLIENT:   mac: 0x00158d00000b1cf0     /dev/ttyUSB1     MAC-Jennic: End-Device.
+
+>   ../../tools/sky/serialdump-linux -b115200 /dev/ttyUSB1
+
+connecting to /dev/ttyUSB1 (38400) [OK]
+UDP client process started
+Client IPv6 addresses:  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf0
+Created a connection with the server  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf1 local/remote port 3001/3000
+Client sending to:  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf1  (msg: Hello 1)
+Client sending to:  0xfe 0x80:0x0 0x0:0x0 0x0:0x0 0x0:0x2 0x15:0x8d 0x0:0x0 0xb:0x1c 0xf1  (msg: Hello 2)
+
+
+-- UDP-SERVER:   mac: 0x00158d00000b1cf1     /dev/ttyUSB0     MAC-Jennic: Coordinator.
+
+>  ba-elf-gdb -x ../../cpu/jennic/gdbUSB0.gdb udp-server.jndevkit
+
+This GDB was configured as "--host=i686-pc-linux-gnu --target=ba-elf"...
+Ignoring packet error, continuing...
+init_hardware () at ../../cpu/jennic/./init.c:58
+58        HAL_BREAKPOINT();
+(gdb) c
+Continuing.
+ieee_process: starting
+ieee_process: started
+UDP server startedServer IPv6 addresses:  fe 80:0 0:0 0:0 0:2 15:8d 0:0 b:1c f1 ��\Listening on UDP port 3000
+0Created a server connection with remote address  0 0:0 0:0 0:0 0:0 0:0 0:0 0:0 0 rlocal/remote port 3000/0
+0ieee_task: starting as coord
+ieee_task: FIXED CHANNEL
+ieee_task: started as coord on fixed channel 15
+�.,.,Server received: 'Hello 10����' from  fe 80:0 0:0 0:0 0:2 15:8d 0:0 b:1c f0 �\Responding with message: dHello 1.
+
+
+
+
+-------------------- Contiki 2.4 with TmoteSky ----------------------------------------------------------------
+
+> make TARGET=sky savetarget
+> make 
+> make udp-client.upload
+
+>   ../../tools/sky/serialdump-linux -b115200 /dev/ttyUSB0
+>   ../../tools/sky/serialdump-linux -b115200 /dev/ttyUSB1
+
+fe80::212:7400:fed:24e1 client
+fe80::212:7400:fed:24e1 server
+
+-- UDP-SERVER ----------------
+
+Rime started with address 0.18.116.0.15.237.36.225
+MAC 00:12:74:00:0f:ed:24:e1 Contiki 2.5 started. Node id is not set.
+CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+Tentative link-local IPv6 address fe80:0000:0000:0000:0212:7400:0fed:24e1
+Starting 'UDP server process'
+UDP server started
+Server IPv6 addresses: aaaa::212:7400:fed:24e1
+fe80::212:7400:fed:24e1
+
+--  UDP-CLIENT ---------------
+
+Rime started with address 0.18.116.0.16.36.43.207
+MAC 00:12:74:00:10:24:2b:cf Contiki 2.5 started. Node id is not set.
+CSMA ContikiMAC, channel check rate 8 Hz, radio channel 26
+Tentative link-local IPv6 address fe80:0000:0000:0000:0212:7400:1024:2bcf
+Starting 'UDP client process'
+UDP client process started
+Client IPv6 addresses: aaaa::212:7400:1024:2bcf
+fe80::212:7400:1024:2bcf
+Created a connection with the server aaaa::212:7400:fed:24e1 local/remote port 3001/3000
+  
+-- PROBLEM ---
+
+platform/sky/contiki-conf.h
+//    #define UIP_CONF_ROUTER 1     rafael81
+
+--------------------- Contiki 2.3 with Tmotesky----------------------------------------------------------------
+
+------------ UDP-SERVER ----------------
+
+Contiki 2.3 started. Node id is not set.
+Rime started with address 0.18.116.0.15.237.36.225
+MAC 00:12:74:00:0f:ed:24:e1 sicslowmac channel 26
+Starting 'UDP server process'
+UDP server started
+Server IPv6 addresses:  fe80:0000:0000:0000:0212:7400:0fed:24e1
+Created a server connection with remote address  0000:0000:0000:0000:0000:0000:0000:0000 local/remote port 3000/3001
+
+------------  UDP-CLIENT ---------------
+
+Contiki 2.3 started. Node id is not set.
+Rime started with address 0.18.116.0.16.36.43.207
+MAC 00:12:74:00:10:24:2b:cf sicslowmac channel 26
+Starting 'UDP client process'
+UDP client process started
+Client IPv6 addresses:  fe80:0000:0000:0000:0212:7400:1024:2bcf
+Created a connection with the server  fe80:0000:0000:0000:0212:7400:0fed:24e1 local/remote port 3001/3000
+Client sending to:  fe80:0000:0000:0000:0212:7400:0fed:24e1  (msg: Hello 1 from the client)
+
+
+
+
+
+

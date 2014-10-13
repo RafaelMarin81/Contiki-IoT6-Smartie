@@ -1,0 +1,21 @@
+all: udp-client-logger.jndevkit.hex udp-server-logger.jndevkit.hex  udp-client-logger-testing.jndevkit.hex
+
+SLEEP_RADIO_NO_LEDS=1
+SLEEP_RADIO=1
+
+UIP_CONF_IPV6=1
+
+
+### This chooses the Jennic processor we're building for.
+#    GCC 4.2.1 always builds for JN5139
+#    GCC 4.1.2 always builds for JN5148
+ifeq ($(shell ${CC} -dumpversion),4.2.1)
+CHIP_5139=1
+else
+CHIP_5148=1
+endif
+
+CONTIKI = ../..
+
+
+include $(CONTIKI)/Makefile.include

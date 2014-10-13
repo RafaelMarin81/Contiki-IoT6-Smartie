@@ -1,0 +1,187 @@
+
+
+============================
+ Logger Application
+============================
+
+This application sends periodic messages and change the transmission power for JN5148/JN5139 devices.
+LOGGER is a programme to check the radio range of wireless devices based on Contiki operation system. 
+The code is released under the terms of the GNU General Public License (GPL).
+
+Logger has been written in C programming language. 
+Logger consists of a server and client versions for two nodes.
+These nodes communicates each other to estimate the packet delivery ratio (PDR). 
+The client node acts as a sender, starting the communication and sending several packets.
+The server node acts as a receiver, counting the number of packet received and calculate the PDR percentage.
+Our code is inspired on udp-ipv6 example for Contiki distribution.
+
+LOGGER has been succesfully tested on real scenarios.
+
+
+Disable the ACK in MAC Layer: TxFrameData->u8TxOptions = 1  //  Bit0 is 1  Then  ACK is Active.
+
+============================
+ Logger with leds.
+============================
+
+            La aplicación de la mote3 funciona de la siguiente manera:
+                1- Al conectar la batería, la mote3 enciende el led.
+                2- Cuando la mote3 se conecta a la mote1, hay un parpadeo del led de 1 segundo. Indicando el inicio del test.
+                3- Mientras la mote3 envía 100 mensajes a la mote1,  el led se mantiene encendido durante apróximadamente 25 segundos. 
+                4- Cuando termina el envío de los 100 mensajes, la mote1 responde con el porcentaje de mensajes recibidos de la mote3.
+                5- Entonces, la mote3 muestra ese porcentaje usando parpadeos del led de 1 segundo.  Cada parpadeo representa un 10%.
+                6- Cuando termina todo el proceso, la mote3 apaga el led de forma permanente.
+
+============================
+ Description
+============================
+
+
+# Una opción para sincronizar.
+  ORIGEN
+#  1) Poner a maxima potencia y frecuencia inicial. Enviar paquete de inicializacion.        --> PAQ_INICIO = 1,
+#  2) Comprobar en el sendDone que el paquete ha obtenido su ACK.       --> ACK == 1,
+#  3) Si no hay ACK, reintentar el envio del paquete.                   --> TimerReintento(20ms),
+#  4) Si hay ACK, esperar un timerInicial a que el receptor se prepare. --> num_seq = 0; TimerEspera(20ms),
+#  5) Comenzar a transmitir Datos. Enviando para cada potencia un numero de secuencias.  --> TimerEspera.fired { num_seq++; if(num_seq < MAX) sendPaquete };
+#  6) Una vez, finalizado la transmision.
+#  7) Indicar el cambio de frecuencia. Esperar el cambio de frecuencia.
+#  8) Transmitir para todas las potencia.
+#  9) Una vez enviado para todas las frecuencias. Enviar paquete de finalizacion.  --> SendDone { TimerEspera}
+#  10) Comprobar en el sendDone que el paquete a obtenido su ACK.
+#  11) Si no hay ACK, reintentar el envio del paquete.
+
+
+ DESTINO
+#  Recibir paquetes:
+    PAQ_INICIO --> Inicializar tabla[potencias,secuencias].
+    PAQ_DATOS  --> Incrementar la casilla correspondiente de la tabla.
+    PAQ_FIN    --> Crear paquete con Tabla y Enviar paquete por UART.
+
+#      Para iniciar la cuenta y el temporizador que informara por UART de la tabla.
+#     el paquete de sincronizacion podría emitirse hasta recibir el ACK Hardware del receptor. Cada vez que el receptor recibe este paquete inicializa
+#     la tabla y reinicia el temporizador que esperara todos los paquetes de datos.
+#   Seria posible enviar un paquete de otro tipo para indicar la finalizacion de la emision y que el receptor debe enviar el informe resultante.
+#   Cada vez que se envia un paquete de sincronizacion tanto de inicio como de fin, se tiene que esperar un timer a que el receptor se prepare.
+# Otra opción sería reiniciar primero el esclavo que esta permanentemente escuchando y que transmite por UART la tabla con los número de paquetes
+#     recibidos para cada una de las Potencias y para cada Numero de Secuencia. De manera, que el maestro emite 100 paquetes para cada combinacion
+#     de potencia y numero de secuencia.
+
+# Leds.Red   ---> Cuando el emisor comienza a transmitir paquetes de datos. Cuando el receptor comienza a recibir los paquetes de datos.
+# Leds.Green  --> Cuando el emisor envia un paquete de datos. Cuando el receptor recibe un paquete de datos.
+# Leds.Yellow --> Cuando el emisor termina de retransmitir los paquetes de datos. Cuando el receptor finaliza su temporizador de recepcion.
+
+# El problema de enviar mas de 127 mensajes para una misma combinación es que se necesita mas de 1 Byte. Pero esto se soluciona enviando el porcentaje.
+# Calcular el tiempo que tarda
+# Indicar en cada paquete emitido: Potencia, NumSeq.
+# Receptor tiene una tabla para incrementar el número de paquetes recibidos por cada Potencia y cada NumSeq.
+#
+
+
+
+
+============================
+ Important Files
+============================
+
+Dir:/apps/app-logger/
+
+udp-broadcast.c -       A simple code for sending and receiving UDP broadcast packets.  CHANGE: /core/net/uip6.c to allow receiving multicast-ipv6-packet
+udp-client.c -          Java adapt the code of Contiki for sending with "link local ipv6 address".
+udp-client-logger.c -   Rafa adapt the code of Contiki for sending packets varying <num_paq, num_sec, radio_power>,  include Sleep-mode, Checking-MACaddr 
+udp-server.c -          Java adapt the code of Contiki for sending with "link local ipv6 address".
+udp-server-logger.c -   Adapt the code of Contiki for receiving packets with <num_paq, num_sec, radio_power>,  include Sleep-mode, Checking-MACaddr 
+udp-client-logger.c        Adaptation for udp-ipv6 periodic sending packets varying the transmission power.
+udp-server-logger.c        Adaptation for udp-ipv6 receiving packets calculating the Packet Reception Ratio PRR.
+
+LIBRARIES:
+juart.c - Implement Jara UART Libraries.
+juart.h - Header of Jara UART Libraries.
+logger.h - Header of Application logger. used by UDP Client/Server.
+
+MAKE:
+Makefile -> Variables for make.   i.e.  UIP_CONF_IPV6=1
+Makefile.target - TARGET = jndevkit
+
+DOCUMENTATION:
+My-Testing_udp-ipv6-sleep.txt - Documentation of Sleep-mode, Radio-OFF  with details of implementation, problems, solutions.
+My-Testing_udp-ipv6.txt - Documentation of UDP-IPv6-Communication for Ieee802MAC/TCP/6lowpan/UIP6  with details of implementation, problems, solutions.
+README - Description of logger application using leds and protocol of communication.
+
+-- DIR: platform/jndevkit
+
+leds-arch.c  - Original code for Philipps.
+contiki-main.c - Original code for Philipps.
+contiki-main-sleep.c - Original code for JN-AP-1037-SleepModes-1v1.zip
+
+Makefile.jndevkit - My adaptation for Sleep Mode.
+
+contiki-conf.h - Defines for compile.   i.e. DEFINE_PRINTF_TCPIP
+
+    HAY QUE CAMBIAR EN CONTIKI-CONF.H el #define JENNIC_CONF_COORDINATOR 1, en función si es coordinator o no.
+    Por ejemplo el server si que lo va a llevar, el cliente no.
+    Dentro de ese mismo fichero configurar también PANID, CANAL etc.
+    #define JENNIC_CONF_COORD_FIXED_CHANNEL 15
+    #define SICSLOWPAN_PANID 0xAAAA
+
+
+contiki-main-sleep-radio.c - My adaptation for Sleep Mode. 
+        #define UART0_DEBUG 1
+        #define HIGH_POWER  1        // for JN5139 High power module.    Disable and Enable High-power for Wakeup and Sleep.
+       
+    // Starting
+    PUBLIC void AppColdStart(void);
+    PUBLIC void AppWarmStart(void);
+
+    // Inizializing
+    PRIVATE void vInit(void);
+    PRIVATE void vInitSystem(void);
+    PRIVATE void vInitButtonsLeds(void);
+
+    // Leds
+    PUBLIC void BlinkLeds(int LED);
+    PUBLIC void vToggleLed(void);
+
+    // Application
+    PRIVATE void vMain(void);
+    PRIVATE void vProcessButtons(void);
+    PRIVATE void vHandleTimerInterrupt(uint32 u32DeviceId, uint32 u32ItemBitmap); // Generate a TIMER_0 interruption for continue from CPU_Doze.
+
+    // Sleep/Wake
+    PRIVATE void vConfigureWakeSource(bool_t bEnableInts);
+    PUBLIC void vSleep(teAHI_SleepMode sSleepMode);
+    PRIVATE void vHandleWakeInterrupt(uint32 u32DeviceId, uint32 u32ItemBitmap);  //  Determining the Wake-Up Source. Checking the parameter "u32ItemBitmap"
+
+ 
+
+==============
+   Features
+==============
+
+* Contiki v2.5
+* UART debug
+* IPv6 Local-address only
+
+
+
+        OK- Radio for sender and receiver.   file: upd-client-logger.c
+             3 modes of Radio:  E_JPT_MODE_HIPOWER : High-power mode,  E_JPT_MODE_BOOST : Boost mode (JN513x only), E_JPT_MODE_LOPOWER : Normal mode
+                OK- Radio-power(dBm): –30, –24, –18, –12,  –6,   0
+                OK- High-power(dBm):  -12,  -8,  -2,  +4, +10, +16      More consumption.
+                FAIL- Boost-power(dBm): +3dB in all transmissions.        More consumption.
+
+        OK- Compile  file: upd-server-logger.c upd-client-logger.c    SOLUTION:  MAC Address. 0x00158d00000b1cf0,  0x00158d00000b1cf1
+            OK- Check MAC address in Client and Server.     MAC_ExtAddr_s   64 bits.   Use for TCPIP/Rime Stack.
+            OK- Combine. Transmit-Sleep.  udp-client-logger.    When Transmission-status finished then  start Sleep.
+            OK- Combine. Receive-Sleep.   udp-server-logger.
+
+        
+
+
+
+
+
+
+
+
+ 
