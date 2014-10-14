@@ -167,6 +167,7 @@ endef
         *.cprg *.bin *.data contiki*.a *.firmware core-labels.S *.ihex *.ini \
         *.ce *.co $(CLEAN)
 	-rm -rf $(OBJECTDIR)
+	rm -f *.ihex *.hex
 
 ifndef CUSTOM_RULE_C_TO_CE
 %.ce: %.c
