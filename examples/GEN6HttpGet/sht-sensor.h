@@ -47,13 +47,11 @@
 #endif*/
 
 
-// Pins donde está conectado el sensor.
-//#define HTS11_SCL_DIO   E_AHI_DIO15_INT
-//#define HTS11_DATA_DIO  E_AHI_DIO16_INT
-#define HTS11_SCL_DIO   E_AHI_DIO13_INT
-#define HTS11_DATA_DIO  E_AHI_DIO12_INT
-
-
+// Pins donde está conectado el sensor.     
+#define HTS11_SCL_DIO   E_AHI_DIO15_INT     // Jennic-Sensor-Prototype.  OK. SCL multiple pulse of 24 us
+#define HTS11_DATA_DIO  E_AHI_DIO16_INT     // Jennic-Sensor-Prototype.  OK. DATA 1 pulse 122 us.
+//#define HTS11_SCL_DIO   E_AHI_DIO13_INT   // Jennic-USB.    SCL multiple pulse of 24 us
+//#define HTS11_DATA_DIO  E_AHI_DIO12_INT   // Jennic-USB.    DATA 1 pulse 122 us
 
 // Set pins to Output direction.    void vAHI_DioSetDirection(uint32 u32Inputs, uint32 u32Outputs);
 #define vSetSCLDirectionOutput()    vAHI_DioSetDirection(0, HTS11_SCL_DIO);    // SCL  Output.        // SHT11_CLK_TRIS = 0;

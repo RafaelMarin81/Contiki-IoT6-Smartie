@@ -12,7 +12,7 @@
 
 
 
-//#define DEBUG_SHT11 1
+#define DEBUG_SHT11 1
 
 #ifdef DEBUG_SHT11
 #include "juart.h"
@@ -433,6 +433,12 @@ BYTE SHT11_SetMeasureResolution(BYTE res) {
  * Inicialica las comunicaciones con el sensor.
  */
 void SHT11_Init(void){
+
+    vAHI_SiMasterDisable();
+
+    //vAHI_DioSetPullup(uint32 u32On, uint32 u32Off);
+    vAHI_DioSetPullup(0, HTS11_SCL_DIO);
+    vAHI_DioSetPullup(0, HTS11_DATA_DIO);
 
 	vAHI_DioSetOutput(HTS11_SCL_DIO, 0);  	// SCL-ON      SHT11_CLK = 1;
 	vAHI_DioSetOutput(HTS11_DATA_DIO, 0);  	// DATA-ON      SHT11_DATA = 1;

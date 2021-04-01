@@ -46,10 +46,10 @@
 #include <AppHardwareApi.h>
 #include "lib/assert.h"
 #include "net/netstack.h"
-#include "juart.h"
+#include "juart.c"
 
 #define PUTS(x) GDB2_PUTS(x)
-//#define PRINTF(...) vPrintf(__VA_ARGS__)
+#define PRINTF(...) vPrintf(__VA_ARGS__)
 
 /* also used by auxiliary functions defined in ieee802_aux.c */
 static void (*lqicb)(const rimeaddr_t*, uint8_t) = NULL;
@@ -293,6 +293,8 @@ ieee_mcpspt(MAC_McpsDcfmInd_s *ev)
     case MAC_MCPS_IND_DATA:
       GDB2_PUTS(",");
       /* new frame received */
+      PRINTF("\n\nMAC 802. Receive a DATA frame.\n");
+
       packetbuf_clear();
       packetbuf_copyfrom(asdataframe(ev).au8Sdu,
           asdataframe(ev).u8SduLength);

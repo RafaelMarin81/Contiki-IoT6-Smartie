@@ -47,6 +47,14 @@ PUBLIC void vPutC_UART1(unsigned char c);
 PUBLIC uint8 uGetC_UART1(void);
 PUBLIC bool_t bAvaibleC_UART1(void);
 
+
+PUBLIC void vSerialQ_Init(void);
+PUBLIC void vSerialQ_AddItem(int eQueue, uint8 u8Item);
+PUBLIC uint8 u8SerialQ_RemoveItem(int eQueue);
+PUBLIC bool_t bSerialQ_Empty(int eQueue);
+PUBLIC bool_t bSerialQ_Full(int eQueue);
+PUBLIC void vSerialQ_Flush(int eQueue);
+
 #if defined __cplusplus
 }
 #endif

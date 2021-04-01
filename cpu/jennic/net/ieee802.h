@@ -35,8 +35,6 @@
 #ifndef __JEN_IEEE802_H__
 #define __JEN_IEEE802_H__
 
-#define SICSLOWPAN_PANID 0xAAAB
-
 # include "contiki.h"
 # include "mac.h"
 # include "uip.h"

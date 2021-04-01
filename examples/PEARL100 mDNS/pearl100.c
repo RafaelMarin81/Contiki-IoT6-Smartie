@@ -113,17 +113,18 @@ static void set_connection_address(uip_ipaddr_t *addr)
 static void set_udp_connection(void)
 {
 
-  PRINTF("UDP client process started\n");
+  //PRINTF("UDP client process started\n");
 
   set_global_address();
   set_connection_address(&addDes);
 
-  //client_conn = udp_new(&addDes, UIP_HTONS(54568), NULL);
+  //PRINTF("Connection with the server 2001:720:1710:11::1  PORT 54568\n");
+
+  client_conn = udp_new(&addDes, UIP_HTONS(54568), NULL);
   /* new connection with remote host */
   server_conn = udp_new(NULL, UIP_HTONS(54568), NULL);
   udp_bind(server_conn, UIP_HTONS(54568));
   
-  PRINTF("Created a connection with the server ");
 
 }
 
@@ -135,7 +136,7 @@ static void set_udp_connection(void)
 /* 
  Get the serial data of PEARL100 device
  */
-static int getYoapySerialData(unsigned char *bpm, char *spo2, int *totalLen,
+int getYoapySerialData(unsigned char *bpm, char *spo2, int *totalLen,
                        uint8_t *hArrAct, uint8_t *sArrAct, uint8_t *hArrAnt,
                        uint8_t *sArrAnt)
 {
@@ -144,9 +145,11 @@ static int getYoapySerialData(unsigned char *bpm, char *spo2, int *totalLen,
   int k = 0;
   int j = 0;
   int dataObtained = 0;
+ 
+ 
   while(!dataObtained && bAvaibleC_UART1()) {
     data = uGetC_UART1();
-    if(data != 0xF7)
+    if(data != 0xF7)  // F7
       continue;
     //PRINTF("data=%x dec:%d\n",data,data); 
     dataObtained = 1;
@@ -175,13 +178,56 @@ static int getYoapySerialData(unsigned char *bpm, char *spo2, int *totalLen,
 
   *totalLen = l_len;
   return 1;
+/*
+     while (1) {
+         if ((val=getccb()) == 0xF8)
+         {
+             while((val=getccb()) < 0xF0)
+             {
+                 // here "val" always contains a new plethysmogram sample 
+                 // process it acccording to your needs ......... 
+             }
+         }
+         switch(val) // now val contains a marker, indicates next byte is a special value 
+         {
+             case 0xF9:
+                 printf(”%02u”,getccb()); // print SpO2 
+                 break;
+             case 0xFA:
+                 printf(”%03u”,(unsigned char)getccb()); // print pulse 
+                 break;
+             case 0xFB:
+                 switch(getccb())
+                 {
+                     case 0: gotoxy(20,23);
+                             printf(“ OK ! “); // print messages 
+                             break;
+                     case 1: gotoxy(20,23);
+                             printf(“ No sensor connected ! “);
+                             break;
+                     case 2: gotoxy(20,23);
+                             printf(“ No finger in probe ! “);
+                             break;
+                     case 3: gotoxy(20,23);
+                             printf(“ Low perfusion ! “);
+                             break;
+                 }
+                 break;
+             case 0xFC:
+                 val = getccb();
+                 PRINTF("%d",getccb()&0x0F); // print quality, mask perf.
+                 break;
+         }
+     }
+*/
 }
+
 /*---------------------------------------------------------------------------*/
 /*
  Emulated serial data to do trys
 
  */
-
+/*
 static int getEmulatedSerialData(unsigned char *bpm, char *spo2, int *totalLen,
                           int primera, uint8_t *hArrAct, uint8_t *sArrAct, uint8_t *hArrAnt,
                           uint8_t *sArrAnt)
@@ -191,7 +237,7 @@ static int getEmulatedSerialData(unsigned char *bpm, char *spo2, int *totalLen,
   *bpm = 80;
   *totalLen = 42;
   *spo2 = 97;
-  uint8_t arr[] = {
+  const uint8_t arr[] = {
       151,
       152,
       155,
@@ -234,7 +280,7 @@ static int getEmulatedSerialData(unsigned char *bpm, char *spo2, int *totalLen,
       121,
       128,
       126 };
-  uint8_t arrspo[] = {
+  const uint8_t arrspo[] = {
       151,
       152,
       155,
@@ -291,7 +337,7 @@ static int getEmulatedSerialData(unsigned char *bpm, char *spo2, int *totalLen,
   }
   return 0;
 
-}
+}*/
 /*---------------------------------------------------------------------------*/
 /* This function syncronize the wave using the SPO2 wave obtained through serial port
 
@@ -299,7 +345,8 @@ static int getEmulatedSerialData(unsigned char *bpm, char *spo2, int *totalLen,
 /*
  * Monitor Function
  * 
- */ static int syncWave(int *firstSPO2, int len1, int *secondSPO2, int len2)
+ */ 
+/*static int syncWave(int *firstSPO2, int len1, int *secondSPO2, int len2)
 {
   int minf1 = 255;
   int pminf1 = 0;
@@ -329,12 +376,12 @@ static int getEmulatedSerialData(unsigned char *bpm, char *spo2, int *totalLen,
     return 0;
   else
     return 1;
-}
+}*/
 
 /*
  * Test function
  */
-  static int syncWaveECG(uint8_t *fECG, int len1, uint8_t *sECG, int len2){
+/*static int syncWaveECG(uint8_t *fECG, int len1, uint8_t *sECG, int len2){
   
   int maxf1 = 0;
   int pmaxf1 = 0;
@@ -366,7 +413,7 @@ static int getEmulatedSerialData(unsigned char *bpm, char *spo2, int *totalLen,
     return 1;
   }
   
-}
+}*/
 
 /*---------------------------------------------------------------------------*/
 /* This function store in heartData the heart data obtained through COM1
@@ -385,48 +432,63 @@ static int getHeartBeat(uint8_t *heartData, unsigned char *bpm, char *spo2,
                         int *heartLen, uint8_t *hArrAct, uint8_t *sArrAct,
                         uint8_t *hArrAnt, uint8_t *sArrAnt)
 {
-  int syncType = 0;
   int lenAnt = 0;
   int lenAct = 0;
-  int i = 0;
-  //int iAcum = 0;
-  while(1) {
-    //getYoapySerialData(bpm, spo2, &lenAct, hArrAct, sArrAct, hArrAnt, sArrAnt);     
-    getEmulatedSerialData(bpm,spo2,&lenAct,lenAnt, hArrAct, sArrAct, hArrAnt, sArrAnt);    
-    i++;
-    if(lenAnt) {
-		vPrintf("va a sincronizar\n");
-      //We must to syncronize the wave using that function and the spo2 wave.
-      /*if((syncType = syncWaveECG(hArrAnt,(lenAnt % 2 == 0 ? lenAnt / 2 : lenAnt / 2 + 1),
-                              hArrAct,(lenAct % 2 == 0 ? lenAct / 2 : lenAct / 2 + 1)))) 
-                              if(i==2)
-      {*/
-		  vPrintf("sincronizado\n");
-        *heartLen = ((lenAnt + lenAct) / 2);
-        //Now we can make the complete SPQRST wave
-        memset(heartData, '\0', MAX_SIZE);        
-//        for(i = 0; i < (lenAnt / 2); i++) {
-//          heartData[i] = hArrAnt[i];
-//        }
-        memcpy(heartData, hArrAnt, lenAnt/2);
-//        iAcum = i;
-//        for(i = 0; i < lenAct / 2; i++) {
-//          heartData[iAcum] = hArrAct[i];
-//          iAcum++;
-//        }
-        memcpy(heartData+lenAnt/2,hArrAct,lenAct/2);
-        return 1;
+  uint16_t retries;
 
-      }// else {
-//        lenAnt = 0;
-//        PRINTF("Syncro failed\n");
-//        continue;
-//      }
-    //}
+  vSerialQ_Init();  // RX_QUEUE Init.
+
+  //for(retries = 0; retries < 100; retries++) {  
+  while(1) {
+    getYoapySerialData(bpm, spo2, &lenAct, hArrAct, sArrAct, hArrAnt, sArrAnt);     
+    //PRINTF("getYoapySerialData spo2 %d bpm %d lenAct %d\n", *spo2, *bpm, lenAct);
+
+    //getEmulatedSerialData(bpm,spo2,&lenAct,lenAnt, hArrAct, sArrAct, hArrAnt, sArrAnt);    
+
+    if(lenAnt) {
+        // syncWaveECG of hArrAnt
+        //if((syncWaveECG(hArrAnt,(lenAnt % 2 == 0 ? lenAnt / 2 : lenAnt / 2 + 1),
+          //              hArrAct,(lenAct % 2 == 0 ? lenAct / 2 : lenAct / 2 + 1))))
+
+        if (1) {
+    		//vPrintf("va a sincronizar\n");
+	    	//vPrintf("sincronizado\n");
+            *heartLen = ((lenAnt + lenAct) / 2);
+            //Now we can make the complete SPQRST wave
+            memset(heartData, '\0', MAX_SIZE);        
+            memcpy(heartData, hArrAnt, lenAnt/2);
+            memcpy(heartData+(lenAnt/2),hArrAct,lenAct/2);
+            uint16_t k;
+            PRINTF("Curva Pulsaciones por minuto: \n");
+            for(k = 0; k < *heartLen; k++) {
+                PRINTF("%x ", heartData[k]);
+            }
+            PRINTF("\n");
+
+            PRINTF("Curva ECG: \n");
+            PRINTF("sArrAnt: \n");
+            for(k = 0; k < lenAnt; k++) {
+                PRINTF("%x ", sArrAnt[k]);
+            }
+            PRINTF("sArrAct: \n");
+            for(k = 0; k < lenAct; k++) {
+                PRINTF("%x ", sArrAct[k]);
+            }
+            PRINTF("\n");
+
+            return 1;
+      
+        } else {
+            lenAnt = 0;
+            PRINTF("Syncro failed\n");
+            continue;
+        }
+
+
+    }
     // Extraemos una nueva trama para analizar el siguiente latido
     memcpy(sArrAnt, sArrAct, (lenAct % 2 == 0 ? lenAct / 2 : lenAct / 2 + 1));
     memcpy(hArrAnt, hArrAct, lenAct / 2);
-
     lenAnt = lenAct;
   }
 }
@@ -447,7 +509,7 @@ static void tcpip_handler(void)
     ((char *)uip_appdata)[uip_datalen()] = 0;
 
     buff = ((char *)uip_appdata);
-    client_conn = udp_new(&(server_conn->ripaddr), UIP_HTONS(54568), NULL);
+    //client_conn = udp_new(&(server_conn->ripaddr), UIP_HTONS(54568), NULL);
     PRINT6ADDR(&(server_conn->ripaddr));
 	
     memset(&server_conn->ripaddr, 0, sizeof(server_conn->ripaddr));
@@ -525,38 +587,36 @@ static void mdns_SRV_announcement(char *name,int name_len,
 static char spo2 = 0;
 static unsigned char bpm = 0;
 
-
-
 PROCESS_THREAD(pearl100_process, ev, data)
-
-	
 {
-	
-	static char par_name[4] = "ecg\0";
-	static char par_service[11] = "_mdns._udp\0";
-	static char par_target[9] = "e-health\0";
-	static char par_txt[128] = "rt=e-health;gps=Murcia;geo=38.023433@-1.174743;ip=2001:720:1710:11::5\0";	
-	
+  static char par_name[4] = "ecg\0";
+  static char par_service[11] = "_mdns._udp\0";
+  static char par_target[9] = "e-health\0";
+  static char par_txt[128] = "rt=e-health;gps=Murcia;geo=38.023433@-1.174743;ip=2001:720:1710:11::5\0";	
 	
   PROCESS_BEGIN();
   vUART_printInit();
   vUART_DataInit();
   //struct CompressedWave cwave;
   
-  int heartLen = 0;
-  uint8_t hArrAct[MAX_SIZE/2];
-  uint8_t sArrAct[MAX_SIZE/2];
-  uint8_t hArrAnt[MAX_SIZE/2];
-  uint8_t sArrAnt[MAX_SIZE/2];
+  static int heartLen = 0;
+  static uint8_t hArrAct[MAX_SIZE/2];
+  static uint8_t sArrAct[MAX_SIZE/2];
+  static uint8_t hArrAnt[MAX_SIZE/2];
+  static uint8_t sArrAnt[MAX_SIZE/2];
+  static uint8_t GreenLed = 1, OrangeLed = 1;
+
   memset(sArrAct, 0, MAX_SIZE/2);
   memset(hArrAct, 0, MAX_SIZE/2);
   memset(sArrAnt, 0, MAX_SIZE/2);
   memset(hArrAnt, 0, MAX_SIZE/2);
-  PRINTF("Starting PEARL100...\n");
+  PRINTF("Starting PEARL100...  SICSLOWPAN_PANID: %x\n", SICSLOWPAN_PANID);
   
   set_udp_connection();
   init_mdns_announcement_connection();
-  
+ 
+  vAHI_DioSetDirection(0, E_AHI_DIO2_INT);  // Green
+  vAHI_DioSetDirection(0, E_AHI_DIO3_INT);  // Orange
 
   etimer_set(&et, CLOCK_SECOND);
   errDetected = 0;
@@ -576,19 +636,34 @@ PROCESS_THREAD(pearl100_process, ev, data)
 	vPrintf("Anunciando...\n");
 	if(isAssociated()){
 
-		
-
-		vAHI_DioSetDirection(0, E_AHI_DIO3_INT);
+		if(GreenLed == 1) {
+            GreenLed = 0;
+            vAHI_DioSetOutput(0, E_AHI_DIO2_INT); // Green OFF
+        } else {
+            GreenLed = 1;
+            vAHI_DioSetOutput(E_AHI_DIO2_INT, 0); // Green ON
+        }
 		
 		mdns_SRV_announcement(par_name,strlen(par_name),
 							par_service,strlen(par_service),
 							par_target,strlen(par_target),
 							par_txt,strlen(par_txt));
 	}
-	vPrintf("Preparando para enviar onda\n");
+
+    vPrintf("Preparando para enviar onda\n");
     if(client_conn != NULL && isAssociated() && getHeartBeat(heartData,&bpm,&spo2,&heartLen, hArrAct, sArrAct, hArrAnt, sArrAnt)) {
-      timeout_handlerRAW(bpm,spo2,heartLen);
-      vPrintf("onda enviada\n");
+     
+        if(OrangeLed == 1) {
+           OrangeLed = 0;
+           vAHI_DioSetOutput(0, E_AHI_DIO3_INT); // Orange OFF
+        } else {
+           OrangeLed = 1;
+           vAHI_DioSetOutput(E_AHI_DIO3_INT, 0); // Orange ON
+        }
+
+        timeout_handlerRAW(bpm,spo2,heartLen);
+        vPrintf("onda enviada\n");
+  
 	
     }
     vPrintf("fin obtencion de onda\n");

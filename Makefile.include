@@ -11,7 +11,6 @@ ifeq ($(TARGET),)
     ${info using saved target '$(TARGET)'}
   endif
 endif
-
 ifeq ($(DEFINES),)
   -include Makefile.$(TARGET).defines
   ifneq ($(DEFINES),)
@@ -41,7 +40,7 @@ LOWERCASE = -abcdefghijklmnopqrstuvwxyz
 UPPERCASE = _ABCDEFGHIJKLMNOPQRSTUVWXYZ
 TARGET_UPPERCASE := ${strip ${shell echo $(TARGET) | sed y!$(LOWERCASE)!$(UPPERCASE)!}}
 CFLAGS += -DCONTIKI=1 -DCONTIKI_TARGET_$(TARGET_UPPERCASE)=1
-CFLAGS += -DUIP_CONF_TCP=1
+#CFLAGS += -DUIP_CONF_TCP=1
 
 include $(CONTIKI)/core/net/rime/Makefile.rime
 include $(CONTIKI)/core/net/mac/Makefile.mac

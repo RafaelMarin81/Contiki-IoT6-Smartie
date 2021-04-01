@@ -35,8 +35,6 @@ PUBLIC void vUART_Init_UART1(void);
 #define UART                    E_AHI_UART_1
 #define UART_BAUD_RATE          9600
 
-#define RX_QUEUE 0                 
-#define TX_QUEUE 1
 
 /****************************************************************************/
 /***        Macro Definitions                                             ***/
@@ -50,8 +48,11 @@ PUBLIC void vUART_Init_UART1(void);
 #define UART_LCR_OFFSET 	0x0C
 #define UART_DLM_OFFSET 	0x04
 #define CIRCBUFF_PTR_MASK   0x03FFU
-#define MAX_CIRCBUFF_SIZE   256 //Ponia 1024
-#define NBR_QUEUES          2
+#define MAX_CIRCBUFF_SIZE   512 //Ponia 1024
+
+#define RX_QUEUE 0                 
+#define TX_QUEUE 1 // RAFA
+#define NBR_QUEUES          2 // 2 RAFA
 
 
 /****************************************************************************/
@@ -68,37 +69,37 @@ typedef struct
 /***        Local Function Prototypes                                     ***/
 /****************************************************************************/
 
-PRIVATE tsCircBuff sRxQueue, sTxQueue;
-PRIVATE const tsCircBuff *apsQueueList[NBR_QUEUES] = { &sRxQueue, &sTxQueue };
+PUBLIC tsCircBuff sRxQueue, sTxQueue;
+PUBLIC const tsCircBuff *apsQueueList[NBR_QUEUES] = { &sRxQueue, &sTxQueue };
 
-PRIVATE void vNum2String(uint32 u32Number, uint8 u8Base);
-PRIVATE void vNum2StringUART0(uint32 u32Number, uint8 u8Base);
-PRIVATE void vInteger2StringUART0(uint32 s32Number, uint8 u8Base);
-PRIVATE void vUART_Init(void);
-PRIVATE void vUART_StartTx(void);
-PRIVATE void vUART_RxCharISR(uint8 u8RxChar);
-PRIVATE void vUART_TxCharISR(void);
-PRIVATE void   vSerialQ_Init(void);
-PRIVATE bool_t bSerialQ_Full(int eQueue);
-PRIVATE bool_t bSerialQ_Empty(int eQueue);
-PRIVATE uint8  u8SerialQ_RemoveItem(int eQueue);
-PRIVATE void   vSerialQ_AddItem(int eQueue, uint8 u8Item);
+PUBLIC void vNum2String(uint32 u32Number, uint8 u8Base);
+PUBLIC void vNum2StringUART0(uint32 u32Number, uint8 u8Base);
+PUBLIC void vInteger2StringUART0(uint32 s32Number, uint8 u8Base);
+PUBLIC void vUART_Init(void);
+PUBLIC void vUART_StartTx(void);
+PUBLIC void vUART_RxCharISR(uint8 u8RxChar);
+PUBLIC void vUART_TxCharISR(void);
+PUBLIC void   vSerialQ_Init(void);
+PUBLIC bool_t bSerialQ_Full(int eQueue);
+PUBLIC bool_t bSerialQ_Empty(int eQueue);
+PUBLIC uint8  u8SerialQ_RemoveItem(int eQueue);
+PUBLIC void   vSerialQ_AddItem(int eQueue, uint8 u8Item);
 
 /* pointer to whatever putchar function the user gives us */
-PRIVATE void (*vPutChar0) (char c) = NULL;
-PRIVATE void (*vPutChar1) (char c) = NULL;
-PRIVATE void vUART_SetBuadRate(uint32 u32BaudRate);
-PRIVATE void vSerialQ_Flush(int eQueue);
+PUBLIC void (*vPutChar0) (char c) = NULL;
+PUBLIC void (*vPutChar1) (char c) = NULL;
+PUBLIC void vUART_SetBuadRate(uint32 u32BaudRate);
+PUBLIC void vSerialQ_Flush(int eQueue);
 
 
-PRIVATE void vSerialQ_Init(void)
+PUBLIC void vSerialQ_Init(void)
 {
     vSerialQ_Flush(RX_QUEUE);
     vSerialQ_Flush(TX_QUEUE);
 }
 
 
-PRIVATE void vSerialQ_AddItem(int eQueue, uint8 u8Item)
+PUBLIC void vSerialQ_AddItem(int eQueue, uint8 u8Item)
 {
     tsCircBuff *psQueue;
     uint16 u16NextLocation;
@@ -116,7 +117,7 @@ PRIVATE void vSerialQ_AddItem(int eQueue, uint8 u8Item)
 }
 
 
-PRIVATE uint8 u8SerialQ_RemoveItem(int eQueue)
+PUBLIC uint8 u8SerialQ_RemoveItem(int eQueue)
 {
     uint8 u8Item = 0;
     tsCircBuff *psQueue;
@@ -133,7 +134,7 @@ PRIVATE uint8 u8SerialQ_RemoveItem(int eQueue)
 }
 
 
-PRIVATE bool_t bSerialQ_Empty(int eQueue)
+PUBLIC bool_t bSerialQ_Empty(int eQueue)
 {
     bool_t bResult = FALSE;
     tsCircBuff *psQueue;
@@ -143,11 +144,13 @@ PRIVATE bool_t bSerialQ_Empty(int eQueue)
     if (psQueue->u16Tail == psQueue->u16Head)
     {
         bResult = TRUE;
+        //vPutChar0('f');
     }
+    vPutChar0('0' + bResult);
     return(bResult);
 }
 
-PRIVATE bool_t bSerialQ_Full(int eQueue)
+PUBLIC bool_t bSerialQ_Full(int eQueue)
 {
     bool_t bResult = FALSE;
     tsCircBuff *psQueue;
@@ -164,7 +167,7 @@ PRIVATE bool_t bSerialQ_Full(int eQueue)
     return(bResult);
 }
 
-PRIVATE void vSerialQ_Flush(int eQueue)
+PUBLIC void vSerialQ_Flush(int eQueue)
 {
     tsCircBuff *psQueue;
 
@@ -176,37 +179,31 @@ PRIVATE void vSerialQ_Flush(int eQueue)
 
 ////////////////////////////////////////////////////////////////
 
-#if UART == E_AHI_UART_0
-PRIVATE void vUART_HandleUart0Interrupt(uint32 u32Device, uint32 u32ItemBitmap);
-#else
-PRIVATE void vUART_HandleUart1Interrupt(uint32 u32Device, uint32 u32ItemBitmap);
-#endif
+//PUBLIC void vUART_HandleUart0Interrupt(uint32 u32Device, uint32 u32ItemBitmap);
+PUBLIC void vUART_HandleUart1Interrupt(uint32 u32Device, uint32 u32ItemBitmap);
 
-PRIVATE void vUART_Init(void)
+/*PUBLIC void vUART_Init(void)
 {
-    /* Enable UART 1 */
+    // Enable UART 
     vAHI_UartEnable(UART);
 
     vAHI_UartReset(UART, TRUE, TRUE);
     vAHI_UartReset(UART, FALSE, FALSE);
 
-    /* Register function that will handle UART interrupts */
-    #if UART == E_AHI_UART_0
-        vAHI_Uart0RegisterCallback(vUART_HandleUart0Interrupt);
-    #else
-        vAHI_Uart1RegisterCallback(vUART_HandleUart1Interrupt);
-    #endif
+    // Register function that will handle UART interrupts 
+//    vAHI_Uart0RegisterCallback(vUART_HandleUart0Interrupt);
+    vAHI_Uart1RegisterCallback(vUART_HandleUart1Interrupt);
 
-    /* Set the clock divisor register to give required buad, this has to be done
-       directly as the normal routines (in ROM) do not support all baud rates */
+    // Set the clock divisor register to give required buad, this has to be done
+       directly as the normal routines (in ROM) do not support all baud rates 
     vUART_SetBuadRate(UART_BAUD_RATE);
 
     vAHI_UartSetControl(UART, FALSE, FALSE, E_AHI_UART_WORD_LEN_8, TRUE, FALSE);
 
     vAHI_UartSetInterrupt(UART, FALSE, FALSE, TRUE, TRUE, E_AHI_UART_FIFO_LEVEL_1);
-}
+}*/
 
-PRIVATE void vUART_SetBuadRate(uint32 u32BaudRate)
+PUBLIC void vUART_SetBuadRate(uint32 u32BaudRate)
 {
     uint8 *pu8Reg;
     uint8  u8TempLcr;
@@ -242,7 +239,7 @@ PRIVATE void vUART_SetBuadRate(uint32 u32BaudRate)
 }
 
 
-PRIVATE void vUART_StartTx(void)
+PUBLIC void vUART_StartTx(void)
 {
     /* Has interrupt driven transmit stalled (tx fifo is empty) */
     if (u8AHI_UartReadLineStatus(UART) & E_AHI_UART_LS_THRE)
@@ -254,7 +251,7 @@ PRIVATE void vUART_StartTx(void)
     }
 }
 
-PRIVATE void vUART_TxCharISR(void)
+PUBLIC void vUART_TxCharISR(void)
 {
     if(!bSerialQ_Empty(TX_QUEUE))
 	{
@@ -263,13 +260,13 @@ PRIVATE void vUART_TxCharISR(void)
 }
 
 
-PRIVATE void vUART_RxCharISR(uint8 u8RxChar)
+PUBLIC void vUART_RxCharISR(uint8 u8RxChar)
 {
     vSerialQ_AddItem(RX_QUEUE, u8RxChar);
 }
 
-#if UART == E_AHI_UART_0
-PRIVATE void vUART_HandleUart0Interrupt(uint32 u32Device, uint32 u32ItemBitmap)
+/*
+PUBLIC void vUART_HandleUart0Interrupt(uint32 u32Device, uint32 u32ItemBitmap)
 {
     if (u32Device == E_AHI_DEVICE_UART0)
     {
@@ -284,14 +281,16 @@ PRIVATE void vUART_HandleUart0Interrupt(uint32 u32Device, uint32 u32ItemBitmap)
         }
     }
 }
-#else
-PRIVATE void vUART_HandleUart1Interrupt(uint32 u32Device, uint32 u32ItemBitmap)
+*/
+PUBLIC void vUART_HandleUart1Interrupt(uint32 u32Device, uint32 u32ItemBitmap)
 {
-    if (u32Device == E_AHI_DEVICE_UART1)
-    {
-        if ((u32ItemBitmap & 0x000000FF) == E_AHI_UART_INT_RXDATA)
+    if (u32Device == E_AHI_DEVICE_UART1) {
+        if( ((u32ItemBitmap & 0x000000FF) == E_AHI_UART_INT_RXDATA)
+                || ((u32ItemBitmap & 0x000000FF) == E_AHI_UART_INT_TIMEOUT) ) 
         {
-            vUART_RxCharISR(u8AHI_UartReadData(E_AHI_UART_1));
+            vSerialQ_AddItem(RX_QUEUE, u8AHI_UartReadData(E_AHI_UART_1));
+            //vPutChar0('.');
+            //vUART_RxCharISR(u8AHI_UartReadData(E_AHI_UART_1));
         }
         else if (u32ItemBitmap == E_AHI_UART_INT_TX)
         {
@@ -299,7 +298,6 @@ PRIVATE void vUART_HandleUart1Interrupt(uint32 u32Device, uint32 u32ItemBitmap)
         }
     }
 }
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -444,11 +442,13 @@ PUBLIC void vUART_DataInit(void)
 /** CONFIGURACIÓN UART - CONFIG UART */
 PUBLIC void vUART_Init_UART1(void) //PRINT UART
 {
-    /* Enable UART 1: 9600-8-N-1 */
+    /* Enable UART 1: 9600-8-N-1 */     //  .MsComm1.Settings = "9600,n,8,1"
     vAHI_UartEnable(E_AHI_UART_1);
 
     vAHI_UartReset(E_AHI_UART_1, TRUE, TRUE);
     vAHI_UartReset(E_AHI_UART_1, FALSE, FALSE);
+
+    vAHI_Uart1RegisterCallback(vUART_HandleUart1Interrupt);
 
     /**
     CONSTANTES QUE TENEMOS PARA CONFIGURAR LA UART (from AppHardwareAPI.h
@@ -494,6 +494,7 @@ PUBLIC void vUART_Init_UART1(void) //PRINT UART
     #define E_AHI_UART_RTS_LOW         FALSE
     */
 
+
     vAHI_UartSetClockDivisor(E_AHI_UART_1, E_AHI_UART_RATE_9600);
 
     /**
@@ -501,6 +502,8 @@ PUBLIC void vUART_Init_UART1(void) //PRINT UART
                                   uint8 u8WordLength, bool_t bOneStopBit, bool_t bRtsValue);
     */
     vAHI_UartSetControl(E_AHI_UART_1, FALSE, FALSE, E_AHI_UART_WORD_LEN_8, TRUE, FALSE);
+
+    vAHI_UartSetInterrupt(E_AHI_UART_1, FALSE, FALSE, FALSE, TRUE, E_AHI_UART_FIFO_LEVEL_8);
 }
 
 
@@ -583,8 +586,10 @@ PUBLIC uint8 uGetC_UART1(void)
     uint8 u8RxChar =0;
 
     /** wait for somthing in rx fifo - Esperamos a que haya algo en la cola fifo de la entrada RX*/
-    while ((u8AHI_UartReadLineStatus(E_AHI_UART_1) & E_AHI_UART_LS_DR  ) == 0);
-    u8RxChar = u8AHI_UartReadData(E_AHI_UART_1);
+    //while ((u8AHI_UartReadLineStatus(E_AHI_UART_1) & E_AHI_UART_LS_DR  ) == 0);
+    //u8RxChar = u8AHI_UartReadData(E_AHI_UART_1);
+    while(bSerialQ_Empty(RX_QUEUE));
+    u8RxChar = u8SerialQ_RemoveItem(RX_QUEUE);
 
     return u8RxChar;
 }
@@ -596,7 +601,8 @@ PUBLIC bool_t bAvaibleC_UART0(void)
 
 PUBLIC bool_t bAvaibleC_UART1(void)
 {
-    return !((u8AHI_UartReadLineStatus(E_AHI_UART_1) & E_AHI_UART_LS_DR  ) == 0);
+    //return !((u8AHI_UartReadLineStatus(E_AHI_UART_1) & E_AHI_UART_LS_DR  ) == 0);
+    return (!bSerialQ_Empty(RX_QUEUE));
 }
 
 PUBLIC void vPutC_UART0(unsigned char c)
@@ -631,7 +637,7 @@ PUBLIC void vPutC_UART1(unsigned char c)
  * vNum2String()
  *  Convert a number to a string
  */
-PRIVATE void vNum2String(uint32 u32Number, uint8 u8Base)
+PUBLIC void vNum2String(uint32 u32Number, uint8 u8Base)
 {
     char buf[33];
     char *p = buf + 33;
@@ -661,7 +667,7 @@ PRIVATE void vNum2String(uint32 u32Number, uint8 u8Base)
  * vNum2String()
  *  Convert a number to a string
  */
-PRIVATE void vNum2StringUART0(uint32 u32Number, uint8 u8Base)
+PUBLIC void vNum2StringUART0(uint32 u32Number, uint8 u8Base)
 {
     char buf[33];
     char *p = buf + 33;
@@ -689,7 +695,7 @@ PRIVATE void vNum2StringUART0(uint32 u32Number, uint8 u8Base)
 
 
 
-PRIVATE void vInteger2StringUART0(uint32 s32Number, uint8 u8Base)
+PUBLIC void vInteger2StringUART0(uint32 s32Number, uint8 u8Base)
 {
 	char buf[33];
 	char *p = buf+33;	

@@ -382,6 +382,8 @@ static int getHeartBeat(uint8_t *heartData, unsigned char *bpm, char *spo2,
   int lenAct = 0;
   int i = 0;
   int iAcum = 0;
+  int retries = 0;
+  //for(retries = 0; retries < 100; retries++) {
   while(1) {
     getYoapySerialData(bpm, spo2, &lenAct, hArrAct, sArrAct, hArrAnt, sArrAnt);
     //getEmulatedSerialData(bpm,spo2,&lenAct,lenAnt, hArrAct, sArrAct, hArrAnt, sArrAnt);

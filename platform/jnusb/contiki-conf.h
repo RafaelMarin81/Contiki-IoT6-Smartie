@@ -88,7 +88,7 @@ typedef unsigned short uip_stats_t;
 #define JENNIC_CONF_COORD_BEACON_ORDER          15
 
 #define JENNIC_CONF_COORD_FIXED_CHANNEL 15
-#define SICSLOWPAN_PANID 0xCCCC
+#define SICSLOWPAN_PANID 0xAAAA
 
 #define JENNIC_CONF_COORDINATOR 1
 

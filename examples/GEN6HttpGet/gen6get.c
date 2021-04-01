@@ -48,8 +48,8 @@ static int createHTTPSensorValueResponse(char *buffer){
 	double hum, temp = 0;
 	char content[MAX_HTTP_CONTENT_LEN];
 	
-	SHT11_MeasureTemperatureAndHumidity(&temp,&hum);
-	sprintf(content, "<http><head></head><body><h1>Sensor values:</h1><ul><li>Temperature:%d</li><li>Luminosity:%d</li><li>Humidity:%d</li></ul></body></http>\r\n\r\n\0",(int)temp, value(TSL_VALUE_VISIBLE),(int)hum);
+	SHT11_Init_MeasureTemperatureAndHumidity(&temp,&hum);
+	sprintf(content, "<http><head></head><body><h1>Sensor values:</h1><ul><li>Temperature:%d</li><li>Luminosity:%d</li><li>Humidity:%d</li></ul></body></http>\r\n\r\n\0",(int)temp, 0, (int)hum);//value(TSL_VALUE_VISIBLE),(int)hum);
 	
 	sprintf(buffer, "HTTP/1.1 200 OK\r\nServer: Clitech Mote Server\r\nContent-Length: %d\r\nContent-Type: text/html\r\nConnection: close\r\n\r\n%s",(int)strlen(content),content);
 	return strlen(buffer);
@@ -58,13 +58,13 @@ static int createHTTPSensorValueResponse(char *buffer){
 static void
 set_global_address(void)
 {
-	 //~ uip_ipaddr_t ipaddr;
-	 //~ uip_ip6addr(&ipaddr, 0x2001, 0x720, 0x1710, 0x11,0,0,0,0x1052);
-	 //~ uip_ds6_addr_add(&ipaddr, 0, ADDR_MANUAL);	 
-	 uip_ipaddr_t loc_fipaddr;
+	 uip_ipaddr_t ipaddr;
+	 uip_ip6addr(&ipaddr, 0x2001, 0x720, 0x1710, 0x11,0,0,0,0x1052);
+	 uip_ds6_addr_add(&ipaddr, 0, ADDR_MANUAL);	 
 	 
-	  uip_create_linklocal_prefix(&loc_fipaddr);
-	  uip_ds6_addr_add(&loc_fipaddr, 0, ADDR_AUTOCONF);
+     //uip_ipaddr_t loc_fipaddr;
+	 //uip_create_linklocal_prefix(&loc_fipaddr);
+	 //uip_ds6_addr_add(&loc_fipaddr, 0, ADDR_AUTOCONF);
 	 
 }
 
@@ -88,17 +88,20 @@ int http_get_request_response_handler(){
 PROCESS_THREAD(gen6_getp, ev, data)
 {
 	static uip_ipaddr_t destiny;
-	double hum, temp = 0;
-	int lum = 0;
+	static double hum, temp = 0;
+	static int lum = 0;
 	
 	PROCESS_BEGIN();
 		vUART_printInit();
 		vUART_DataInit();
-		bAHI_SetClockRate(0);
-		vAHI_HighPowerModuleEnable(TRUE,TRUE);
-		bAHI_PhyRadioSetPower(3);
-		SHT11_Init();
 		
+        vAHI_HighPowerModuleEnable(TRUE,TRUE);
+		bAHI_PhyRadioSetPower(3);
+		
+        // 1. Set 32 bit RISC CPU to 4Mhz.
+        bAHI_SetClockRate(0);       
+        SHT11_Init_MeasureTemperatureAndHumidity(&temp, &hum); // Before  Set 32 bit RISC CPU to 4Mhz.   bAHI_SetClockRate(0);
+        
 		//luminosity sensor init
 		configure(SENSORS_HW_INIT,0);
 		
@@ -146,13 +149,14 @@ PROCESS_THREAD(gen6_getp, ev, data)
 			}
 			
 			if(isAssociated() && uip_connected()){
-				SHT11_MeasureTemperatureAndHumidity(&temp,&hum);
+				SHT11_Init_MeasureTemperatureAndHumidity(&temp,&hum);
 				memset(buffer,'\0',MAX_PAYLOAD_LEN);
 				memset(uri,'\0',MAX_URI_LEN);
 				memset(payload,'\0',MAX_URI_LEN);
 
 				sprintf(uri,"/index.php/insert/data/mac/234234/hash/017466352925ce489bb97a7356cfabe1/");
-				sprintf(payload, "data={temp:%d,hum:%d,lum:%d}", (int)temp, (int)hum, value(TSL_VALUE_VISIBLE));
+				//sprintf(payload, "data={temp:%d,hum:%d,lum:%d}", (int)temp, (int)hum, value(TSL_VALUE_VISIBLE));
+				sprintf(payload, "data={temp:%d,hum:%d,lum:%d}", (int)temp, (int)hum, 0);
 
 				plen = createHttpGetRequest(buffer, host, uri, payload);
 				vPrintf("Sending request.\n");

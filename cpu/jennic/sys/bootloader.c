@@ -304,7 +304,7 @@ appcall(void *p)
 PROCESS_THREAD(jennic_bootloader_process, ev, data)
 {
   PROCESS_BEGIN();
-  tcp_listen(UIP_HTONS(2048));
+  //tcp_listen(UIP_HTONS(2048));
 
   while(1)
   {

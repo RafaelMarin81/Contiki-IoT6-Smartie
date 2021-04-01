@@ -319,20 +319,16 @@ struct CapWave cw;
 
 PROCESS_THREAD(cap10_process, ev, data)
 {
+    PROCESS_BEGIN();
   
-
-	PROCESS_BEGIN();
-  
-	  
-
-		vUART_printInit();
-		vUART_DataInit();
-		
-		
-		send_packet_udp();
-		etimer_set(&et, 1000);
-		PRINTF("Iniciando CAP10...\n");
-		/*cw.pI.x=20;
+    vUART_printInit();
+    vUART_DataInit();
+    
+    
+    send_packet_udp();
+    etimer_set(&et, 1000);
+    PRINTF("Iniciando CAP10...\n");
+    /*cw.pI.x=20;
     cw.pI.y=19;
     cw.pD.x=240;
     cw.pD.y=24;
@@ -340,29 +336,28 @@ PROCESS_THREAD(cap10_process, ev, data)
     cw.BRpm=21;
     cw.d=260;
     cw.diag=0;*/
-		while(1){		
-		  PROCESS_YIELD(); //Useful when more of one thread
-			if(isAssociated() && getCap10SerialData(&cw)){
-			  
-			  //PRINTF("Printing...\n");
-				//printData(&cw);
-				//break;
-			  
-			
-			  timeout_handlerYOAPY(&cw);
-			}else{
-				PRINTF("No data found!\n");
-			}
-			//UDP Response Manager
-      if(ev == tcpip_event) {       
-        tcpip_handler();
-      }
-      if(etimer_expired(&et)) { 
-        etimer_restart(&et);
-      }
-		}		
-		PRINTF("Fin CAP10...\n");
 
+    while(1){		
+        PROCESS_YIELD(); //Useful when more of one thread
+        if(isAssociated() && getCap10SerialData(&cw)){
+            
+            //PRINTF("Printing...\n");
+    		//printData(&cw);
+			//break;			  		
+            timeout_handlerYOAPY(&cw);
+        }else{
+            PRINTF("No data found!\n");
+        }
+
+        //UDP Response Manager
+        if(ev == tcpip_event) {       
+            tcpip_handler();
+        }
+        if(etimer_expired(&et)) { 
+            etimer_restart(&et);
+        }
+    }		
+    PRINTF("Fin CAP10...\n");
 
 	PROCESS_END();
 }

@@ -1,0 +1,26 @@
+
+
+-------- Mensaje reenviado --------
+Asunto:	Re: [GEN6-WP4] Contributions to D4.3 to provide the final version
+Fecha:	Mon, 13 Oct 2014 09:49:52 +0300
+De:	tassos mavridis <t.mavridis@intelen.com>
+Para:	Antonio Skarmeta <skarmeta@um.es>
+
+i forgot that the motes should be configured to send with different mac addresses (ids)
+you can use the following macs
+
+234235
+234236
+234237
+234238
+234239
+234240
+234241
+
+we'll ommit the authentication so the hash will be the same for all motes.
+
+example for 234235 the url would be
+https://[fe80::f03c:91ff:fedf:279f]/Gen6Api/index.php/insert/data/mac/234235/hash/017466352925ce489bb97a7356cfabe1/
+you just have to change the bold part on the url above for each mote.
+
+thanks

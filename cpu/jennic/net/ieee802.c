@@ -46,7 +46,7 @@
 #include <AppHardwareApi.h>
 #include "lib/assert.h"
 #include "net/netstack.h"
-#include "juart.c"
+#include "juart.h"
 
 #define PUTS(x) GDB2_PUTS(x)
 #define PRINTF(...) vPrintf(__VA_ARGS__)

@@ -1,6 +1,9 @@
 #yoapy.hex: pearl100.c yoapy.c yoapy.h simpleList.c simpleList.h
 #	gcc simpleList.c simpleList.h yoapy.c yoapy.h pearl100.c -o yoapy.hex
-all: digservice
+all: digservice.jndevkit.hex
+
+TARGET=jndevkit
+
 PROJECT_SOURCEFILES = coap.c lightdriver.c OMA.c
 
 UIP_CONF_IPV6=1

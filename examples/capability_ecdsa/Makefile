@@ -1,0 +1,16 @@
+#yoapy.hex: pearl100.c yoapy.c yoapy.h simpleList.c simpleList.h
+#	gcc simpleList.c simpleList.h yoapy.c yoapy.h pearl100.c -o yoapy.hex
+all: capability_server.jndevkit.hex
+
+PROJECT_SOURCEFILES = coap.c jsonparse.c ipso-webserv.c Base64EncodeDecode.c
+
+UIP_CONF_IPV6=1
+#CFLAGS += -DUIP_CONF_TCP=0                  ## Disable the TCP support.
+
+CONTIKI = ../..
+include $(CONTIKI)/Makefile.include
+
+
+#clean:
+#	rm -fr *.o *.hex *.jndevkit *.ghc
+

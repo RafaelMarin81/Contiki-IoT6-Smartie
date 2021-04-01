@@ -53,13 +53,20 @@ typedef uint32_t u32_t;
 typedef  int32_t s32_t;
 typedef unsigned short uip_stats_t;
 
+#ifndef UIP_CONF_TCP
 #define UIP_CONF_TCP             1
+#endif
+
 #define UIP_CONF_UDP             1
 #define UIP_CONF_MAX_CONNECTIONS 2
 #define UIP_CONF_MAX_LISTENPORTS 2
+#ifndef UIP_CONF_BUFFER_SIZE
 #define UIP_CONF_BUFFER_SIZE     1400
+#endif
 #define UIP_CONF_BYTE_ORDER      UIP_BIG_ENDIAN
+#ifndef UIP_CONF_TCP_SPLIT
 #define UIP_CONF_TCP_SPLIT       1
+#endif
 #define LOG_CONF_ENABLED         0
 #define UIP_CONF_UDP_CHECKSUMS   1
 #define UIP_CONF_LOGGING         0
@@ -83,13 +90,15 @@ typedef unsigned short uip_stats_t;
 #define SICSLOWPAN_CONF_MAXAGE                  5
 
 #define JENNIC_CONF_IEEE802154_RXQ_ITEMS        15
-#define QUEUEBUF_CONF_NUM                       1
+#ifndef QUEUEBUF_CONF_NUM
+#define QUEUEBUF_CONF_NUM                       32
+#endif
 //#define JENNIC_CONF_JN5148_FASTDATARATE         1
 
 #endif /* UIP_CONF_IPV6 */
 
 #define JENNIC_CONF_COORD_FIXED_CHANNEL 15
-#define SICSLOWPAN_PANID 0xAAAB
+#define SICSLOWPAN_PANID 0xAAAA
 
 //#define JENNIC_CONF_COORDINATOR 1
 
